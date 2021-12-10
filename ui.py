@@ -20,11 +20,7 @@ class MainWindow(QWidget):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-
         self.initUI()
-        self.dbase = DataBase()
-
-
 
     """ начало блока описывающего весь интерфейс программы"""
 
@@ -214,7 +210,7 @@ class MainWindow(QWidget):
         for keys, values in dict_of_params.items():
             print(keys, values)
 
-    #запись выделенного параметра в базу данных и окрагиванием цвета в лист боксе
+    # запись выделенного параметра в базу данных и окрагиванием цвета в лист боксе
     def save_results(self):
         cbox_object = self.cbox_object.currentText()
         cbox_operator = self.cbox_operator.currentText()
@@ -222,11 +218,11 @@ class MainWindow(QWidget):
         shift = self.lbl_shift.text()
 
         if param is not None:
-            self.dbase.db_delete()  # функция из database.py
-            self.dbase.db_connect()  # функция из database.py
-            self.dbase.db_insert(param.text(), cbox_object,cbox_operator, shift) # функция из database.py
+            db_delete()  # функция из database.py
+            db_connect()  # функция из database.py
+            db_insert(param.text(), cbox_object, cbox_operator, shift)  # функция из database.py
             param.setBackground(QColor("LightGreen"))  # устанавливаем цвет после записи в БД
-            table_results = self.dbase.db_select()  # функция из database.py для для проверки
+            table_results = db_select()  # функция из database.py для для проверки
             for row in table_results:
                 print('\nНаша таблица results БД db_results.db\n', row)
         else:

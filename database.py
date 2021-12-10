@@ -7,89 +7,87 @@ from PyQt5.QtWidgets import QWidget
 
 from ui import MainWindow
 
-"""Класс с методами работы с БД """
+
+# создание  БД с таблицей
+def db_connect():
+    connection = sqlite3.connect('db_results.db')
+    cursor = connection.cursor()
+
+    cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
+                id INTEGER PRIMARY KEY,
+                date TEXT,
+                time TEXT,
+                shift TEXT,
+                operator TEXT,
+                object_check TEXT,
+                parameter TEXT,
+                checkout TEXT,
+                defect TEXT,
+                importance_lvl TEXT,
+                detection_type TEXT,
+                detection_date TEXT,
+                solve_date TEXT,
+                comment TEXT,
+                grade INTEGER,
+                defect_grade INTEGER,
+                who_knows TEXT                                
+            )""")
+
+    connection.commit()
+    connection.close()
 
 
-class DataBase:
-    def __init__(self):
-        super(DataBase, self).__init__()
+# вставка данных в таблицу
+def db_insert(item, obj, oper, shift):
+    # все статичные данные для таблицы
+    current_date = str(datetime.now().date())
+    date = datetime.today()
+    current_time = str((date.strftime('%H:%M')))
 
-    def db_connect(self):
-        connection = sqlite3.connect('db_results.db')
-        cursor = connection.cursor()
-        # print(obj.cbox_operator.currentText())
-        cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
-                    id INTEGER PRIMARY KEY,
-                    date TEXT,
-                    time TEXT,
-                    shift TEXT,
-                    operator TEXT,
-                    object_check TEXT,
-                    parameter TEXT,
-                    checkout TEXT,
-                    defect TEXT,
-                    importance_lvl TEXT,
-                    detection_type TEXT,
-                    detection_date TEXT,
-                    solve_date TEXT,
-                    comment TEXT,
-                    grade INTEGER,
-                    defect_grade INTEGER,
-                    who_knows TEXT                                
-                )""")
+    connection = sqlite3.connect('db_results.db')
+    cursor = connection.cursor()
 
-        connection.commit()
-        connection.close()
+    cursor.execute("""INSERT INTO results (
+                    date,
+                    time,
+                    shift,
+                    operator,
+                    object_check,
+                    parameter,
+                    checkout,
+                    defect,
+                    importance_lvl,
+                    detection_type,
+                    detection_date,
+                    solve_date,
+                    comment,
+                    grade,
+                    defect_grade,
+                    who_knows
+                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                   (current_date, current_time, shift, oper, obj, item, '', '', '', '', '', '', '', '', '', ''))
 
-    # добавление записей в БД
-    def db_insert(self, item, obj, oper, shift):
-        # все статичные данные для таблицы
-        current_date = str(datetime.now().date())
-        date = datetime.today()
-        current_time = str((date.strftime('%H:%M')))
+    connection.commit()
+    connection.close()
 
-        connection = sqlite3.connect('db_results.db')
-        cursor = connection.cursor()
 
-        cursor.execute("""INSERT INTO results (
-                        date,
-                        time,
-                        shift,
-                        operator,
-                        object_check,
-                        parameter,
-                        checkout,
-                        defect,
-                        importance_lvl,
-                        detection_type,
-                        detection_date,
-                        solve_date,
-                        comment,
-                        grade,
-                        defect_grade,
-                        who_knows
-                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                       (current_date, current_time, shift, oper, obj, item, '', '', '', '', '', '', '', '', '', ''))
+# выборка из БД
+def db_select():
+    connection = sqlite3.connect('db_results.db')
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM results")
+    # print (cursor.fetchall())
+    return cursor.fetchall()
+    connection.close()
 
-        connection.commit()
-        connection.close()
 
-    # выборк из БД
-    def db_select(self):
-        connection = sqlite3.connect('db_results.db')
-        cursor = connection.cursor()
-        cursor.execute("SELECT * FROM results")
-        # print (cursor.fetchall())
-        return cursor.fetchall()
-        connection.close()
-
-    # очистка всей таблицы в БД
-    def db_delete(self):
-        connection = sqlite3.connect('db_results.db')
-        cursor = connection.cursor()
-        cursor.execute("DELETE FROM results")
-        connection.commit()
-        connection.close()
+# удаление из бД
+def db_delete():
+    connection = sqlite3.connect('db_results.db')
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM results")
+    connection.commit()
+    connection.close()
 
 
 # отдельные функции чтения txt файлов

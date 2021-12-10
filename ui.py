@@ -1,9 +1,11 @@
 import sys, os, os.path, sqlite3
 from datetime import time
+from random import randint
+
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont, QColor
 from PyQt5.QtWidgets import *
-from PyQt5.uic.properties import QtWidgets
+from PyQt5.uic.properties import QtWidgets, QtCore
 
 from database import *
 
@@ -16,15 +18,15 @@ def some_function():
 
 
 class MainWindow(QWidget):
+    #    switch_window = QtCore.pyqtSignal(str)
 
     def __init__(self):
-        super(MainWindow, self).__init__()
+        super().__init__()
+        self.second_window = SecondWindow()
+        self.setupUi()
 
-        self.initUI()
-
-    """ начало блока описывающего весь интерфейс программы"""
-
-    def initUI(self):
+    # функция описывает интерфейс программы
+    def setupUi(self):
 
         self.resize(1280, 800)
         self.center()
@@ -122,14 +124,19 @@ class MainWindow(QWidget):
         self.btn_save.setGeometry(700, 700, 200, 65)
         self.btn_save.clicked.connect(self.save_results)
 
+        self.btn_switch = QPushButton("показать второе окно", self)
+        self.btn_switch.setGeometry(1040, 500, 200, 65)
+        self.btn_switch.clicked.connect(self.show_second_window)
+
+        self.btn_switch = QPushButton("скрыть второе окно", self)
+        self.btn_switch.setGeometry(1040, 400, 200, 65)
+        self.btn_switch.clicked.connect(self.hide_second_window)
+
         # лист параметров проверки
         self.qlistw_params = QListWidget(self)
         self.qlistw_params.setGeometry(40, 150, 1000, 500)
         # self.list_params.resize(500, 500)
         self.qlistw_params.setStyleSheet('font-size: 30px;')
-
-        # self.list_params.addItem(jan)
-        # self.list_params.addItem(QListWidgetItem(jan))
 
         self.radiobtn_yes = QRadioButton('ДА', self)
         self.radiobtn_yes.setGeometry(400, 700, 200, 65)
@@ -147,7 +154,11 @@ class MainWindow(QWidget):
                                        "} QRadioButton{font: 30pt Helvetica MS;}"
                                        "QRadioButton::indicator { width: 30px; height: 30px;}")
 
-    """ конец блока описывающего весь интерфейс программы"""
+    def show_second_window(self, checked):
+        self.second_window.show()
+
+    def hide_second_window(self):
+        self.second_window.hide()
 
     # положение окна программы
     def center(self):
@@ -169,7 +180,7 @@ class MainWindow(QWidget):
     # функция добавляем параметры проверки в окно в сооветсвии с выбраным объектов проверки в комбобоксе
     def add_params(self):
         self.qlistw_params.clear()
-        dict_of_params = read_data_txt()  # функция из модуля files
+        dict_of_params = read_data_txt()  # функция из модуля database
         for key, value in dict_of_params.items():
             if key == self.cbox_object.currentText():
                 print('Проверка функции add_params- ' + key, value)
@@ -177,7 +188,7 @@ class MainWindow(QWidget):
 
     # функция обрабокти кнопки Загрузить список операторов
     def add_operators(self):
-        data = read_data_txt()  # функция из модуля files
+        data = read_data_txt()  # функция из модуля database
         self.cbox_operator.clear()
         for key, value in data.items():
             if key == 'список операторов':
@@ -189,7 +200,7 @@ class MainWindow(QWidget):
 
     # функция обработки кнопки Загрузить список объектов
     def add_objects(self):
-        data = read_data_txt()  # функция из модуля files
+        data = read_data_txt()  # функция из модуля database
         self.cbox_object.clear()
         for key, value in data.items():
             if key == 'список объектов':
@@ -203,10 +214,10 @@ class MainWindow(QWidget):
         self.add_objects()
         self.add_operators()
 
-    # функция проверка для консоли из files выводит словарь, где ключ название файла-объекта, а значенияя это параметры
+    # функция проверка для консоли из database выводит словарь, где ключ название файла-объекта, а значенияя это параметры
     # проверки внутри
     def get_objects(self):
-        dict_of_params = read_data_txt()  # функция из модуля files
+        dict_of_params = read_data_txt()  # функция из модуля database
         for keys, values in dict_of_params.items():
             print(keys, values)
 
@@ -239,6 +250,16 @@ class MainWindow(QWidget):
         print(exception)
 
 
+class SecondWindow(QWidget):
+
+    def __init__(self):
+        super().__init__()
+        layout = QVBoxLayout()
+        self.label = QLabel("Another Window % d" % randint(0, 100))
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+
+
 # класс для обработки ошибок, чтобы окно не вылетало и т.д.
 class MadeToFail(QThread):
     error_ocurred = pyqtSignal(Exception, name="errorOcurred")
@@ -252,10 +273,10 @@ class MadeToFail(QThread):
 
 def main():
     app = QApplication(sys.argv)
-
-    mainwin = MainWindow()
-    mainwin.show()
-    sys.exit(app.exec_())
+    win = MainWindow()
+    win.show()
+    # sys.exit(app.exec_())
+    app.exec_()
 
 
 if __name__ == '__main__':

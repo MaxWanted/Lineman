@@ -5,7 +5,7 @@ from datetime import datetime
 
 from PyQt5.QtWidgets import QWidget
 
-from ui import MainWindow
+
 
 
 # создание  БД с таблицей

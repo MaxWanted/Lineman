@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.uic.properties import QtWidgets, QtCore
 
 from database import *
+from random import randint
 
 
 # для обработки ошибок и перенаправлению потоков
@@ -17,12 +18,15 @@ def some_function():
     raise RuntimeError("broken")
 
 
+"""Класс описывает основное рабочее окно"""
+
+
 class MainWindow(QWidget):
     #    switch_window = QtCore.pyqtSignal(str)
 
     def __init__(self):
         super().__init__()
-        self.second_window = SecondWindow()
+        self.second_window = None
         self.setupUi()
 
     # функция описывает интерфейс программы
@@ -30,7 +34,7 @@ class MainWindow(QWidget):
 
         self.resize(1280, 800)
         self.center()
-        self.setWindowTitle("Арм Обходчик")
+        self.setWindowTitle('АРМ "Обходчик"')
         # self.setGeometry(200, 200, 1150, 768)
 
         current_date = QDate.currentDate()
@@ -112,7 +116,7 @@ class MainWindow(QWidget):
         self.btn_confirm.setFont(font_lbl)
         # self.btn_confirm.setEnabled(False)
         # используем lambda фукнцию т.к. она необходима для передач параметров
-        self.btn_confirm.clicked.connect(self.add_params)
+        self.btn_confirm.clicked.connect(self.click_add_params)
 
         self.btn_exit = QPushButton("Выход", self)
         self.btn_exit.clicked.connect(QApplication.instance().quit)
@@ -120,9 +124,9 @@ class MainWindow(QWidget):
         self.btn_exit.setGeometry(1040, 700, 200, 65)
 
         self.btn_save = QPushButton("Сохранить результат", self)
-        self.btn_save.setFont((font_lbl))
+        self.btn_save.setFont(font_lbl)
         self.btn_save.setGeometry(700, 700, 200, 65)
-        self.btn_save.clicked.connect(self.save_results)
+        self.btn_save.clicked.connect(self.click_save_results)
 
         self.btn_switch = QPushButton("показать второе окно", self)
         self.btn_switch.setGeometry(1040, 500, 200, 65)
@@ -130,7 +134,7 @@ class MainWindow(QWidget):
 
         self.btn_switch = QPushButton("скрыть второе окно", self)
         self.btn_switch.setGeometry(1040, 400, 200, 65)
-        self.btn_switch.clicked.connect(self.hide_second_window)
+        # self.btn_switch.clicked.connect(self.hide_second_window)
 
         # лист параметров проверки
         self.qlistw_params = QListWidget(self)
@@ -154,11 +158,13 @@ class MainWindow(QWidget):
                                        "} QRadioButton{font: 30pt Helvetica MS;}"
                                        "QRadioButton::indicator { width: 30px; height: 30px;}")
 
-    def show_second_window(self, checked):
-        self.second_window.show()
-
-    def hide_second_window(self):
-        self.second_window.hide()
+    def show_second_window(self):
+        if self.second_window is None:
+            self.second_window = SecondWindow()
+            self.second_window.show()
+        else:
+            self.second_window.close()
+            self.second_window = None
 
     # положение окна программы
     def center(self):
@@ -178,8 +184,10 @@ class MainWindow(QWidget):
             event.ignore()
 
     # функция добавляем параметры проверки в окно в сооветсвии с выбраным объектов проверки в комбобоксе
-    def add_params(self):
+    def click_add_params(self):  # кнопка "Подтверидть выбор"
+        self.radiobtn_yes.setChecked(True)
         self.qlistw_params.clear()
+
         dict_of_params = read_data_txt()  # функция из модуля database
         for key, value in dict_of_params.items():
             if key == self.cbox_object.currentText():
@@ -210,19 +218,19 @@ class MainWindow(QWidget):
         if key != 'список объектов':
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список объектов.txt"')
 
-    def click_add_data(self):
+    def click_add_data(self):  # кнопка "Загрузить данные"
         self.add_objects()
         self.add_operators()
 
-    # функция проверка для консоли из database выводит словарь, где ключ название файла-объекта, а значенияя это параметры
-    # проверки внутри
-    def get_objects(self):
-        dict_of_params = read_data_txt()  # функция из модуля database
-        for keys, values in dict_of_params.items():
-            print(keys, values)
+    # функция проверка для консоли из database выводит словарь, где ключ название файла-объекта, а значенияя это
+    # параметры проверки внутри
+    # def get_objects(self):
+    # dict_of_params = read_data_txt()  # функция из модуля database
+    # for keys, values in dict_of_params.items():
+    # print(keys, values)
 
     # запись выделенного параметра в базу данных и окрагиванием цвета в лист боксе
-    def save_results(self):
+    def click_save_results(self):
         cbox_object = self.cbox_object.currentText()
         cbox_operator = self.cbox_operator.currentText()
         param = self.qlistw_params.currentItem()
@@ -231,9 +239,18 @@ class MainWindow(QWidget):
         if param is not None:
             db_delete()  # функция из database.py
             db_connect()  # функция из database.py
-            db_insert(param.text(), cbox_object, cbox_operator, shift)  # функция из database.py
-            param.setBackground(QColor("LightGreen"))  # устанавливаем цвет после записи в БД
-            table_results = db_select()  # функция из database.py для для проверки
+
+            if self.radiobtn_yes.isChecked():  # если выбрано ДА
+                db_insert(param.text(), cbox_object, cbox_operator, shift)  # функция из database.py
+                param.setBackground(QColor("LightGreen"))  # устанавливаем цвет после записи в БД
+                table_results = db_select()  # функция из database.py для для проверки
+
+            if self.radiobtn_no.isChecked():  # если выбрано НЕТ
+                db_insert(param.text(), cbox_object, cbox_operator, shift)
+                param.setBackground(QColor("IndianRed"))
+                table_results = db_select()  # функция из database.py для для проверки
+                self.show_second_window()
+
             for row in table_results:
                 print('\nНаша таблица results БД db_results.db\n', row)
         else:
@@ -250,14 +267,130 @@ class MainWindow(QWidget):
         print(exception)
 
 
+"""Класс описывает второе окно несоответсвий"""
+
+
 class SecondWindow(QWidget):
 
     def __init__(self):
         super().__init__()
-        layout = QVBoxLayout()
-        self.label = QLabel("Another Window % d" % randint(0, 100))
-        layout.addWidget(self.label)
-        self.setLayout(layout)
+
+        # небольшой блок проверки, о том что каждый раз окно создается новоее.
+        # layout = QVBoxLayout()
+        # self.label = QLabel("Another Window % d" % randint(0, 100))
+        # layout.addWidget(self.label)
+        # self.setLayout(layout)
+        self.setupUI()
+        self.get_data()  # функция снова собирает данные из txt файлов в словарь и работает со спискмо несоответсвий
+
+    def setupUI(self):
+
+        self.resize(1280, 800)
+        self.center()
+        self.setWindowTitle('АРМ "Обходчик"')
+
+        # определяем стиль шрифта для надписей и кнопок
+        font_lbl = QFont()
+        font_lbl.setPointSize(12)
+        font_lbl.setBold(True)
+        font_lbl.setWeight(75)
+
+        # определяем шрифт для всех комбобоксов
+        font_cbox = QFont()
+        font_cbox.setPointSize(18)
+        font_cbox.setBold(True)
+        font_cbox.setWeight(80)
+
+        # лист параметров проверки
+        self.qlistw_defects = QListWidget(self)
+        self.qlistw_defects.setGeometry(40, 50, 1000, 400)
+        # self.list_params.resize(500, 500)
+        self.qlistw_defects.setStyleSheet('font-size: 30px;')
+
+        self.btn_save = QPushButton("Сохранить результат", self)
+        self.btn_save.setGeometry(1070, 600, 200, 65)
+        self.btn_save.setFont(font_lbl)
+        # self.btn_next.setEnabled(False)
+        # self.btn_next.clicked.connect(self.get_objects)
+
+        self.btn_close = QPushButton("Закрыть форму", self)
+        self.btn_close.clicked.connect(self.hide_second_window)
+        self.btn_close.setGeometry(1070, 700, 200, 65)
+        self.btn_close.setFont(font_lbl)
+        # self.btn_prev.setEnabled(False)
+        # self.btn_prev.clicked.connect(connect)
+
+        # бальная оценка несоотвествий
+        self.cbox_consequences_grade = QComboBox(self)
+        self.cbox_consequences_grade.setGeometry(QRect(500, 600, 80, 50))
+        self.cbox_consequences_grade.setFont(font_cbox)
+
+        # список с оценки последствий
+        self.cbox_defect_grade = QComboBox(self)
+        self.cbox_defect_grade.setGeometry(QRect(650, 600, 80, 50))
+        self.cbox_defect_grade.setFont(font_cbox)
+
+        self.lineEdit_comment = QLineEdit(self)
+        self.lineEdit_comment.setPlaceholderText('Добавьте комментарий')
+        self.lineEdit_comment.setGeometry(500, 700, 400, 50)
+
+        self.radiobtn_lowlvl = QRadioButton('Низкий', self)
+        self.radiobtn_lowlvl.setGeometry(1070, 100, 200, 65)
+        self.radiobtn_lowlvl.setStyleSheet("QRadioButton"
+                                           "{"
+                                           "background-color : LightGreen"
+                                           "} QRadioButton{font: 26pt Helvetica MS;}"
+                                           "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+        self.radiobtn_medlvl = QRadioButton('Средний', self)
+        self.radiobtn_medlvl.setGeometry(1070, 200, 200, 65)
+        self.radiobtn_medlvl.setStyleSheet("QRadioButton"
+                                           "{"
+                                           "background-color : Khaki"
+                                           "} QRadioButton{font: 26pt Helvetica MS;}"
+                                           "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+        self.radiobtn_hightlvl = QRadioButton('Высокий', self)
+        self.radiobtn_hightlvl.setGeometry(1070, 300, 200, 65)
+        self.radiobtn_hightlvl.setStyleSheet("QRadioButton"
+                                             "{"
+                                             "background-color : IndianRed"
+                                             "} QRadioButton{font: 26pt Helvetica MS;}"
+                                             "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+        self.radiobtn_visual_incpect = QRadioButton('Визуальный осмотр', self)
+        self.radiobtn_visual_incpect.setGeometry(40, 500, 400, 65)
+        self.radiobtn_visual_incpect.setStyleSheet("QRadioButton{font: 16pt Helvetica MS;}"
+                                                   "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+        self.radiobtn_device_incpect = QRadioButton('Диагностика приборами', self)
+        self.radiobtn_device_incpect.setGeometry(350, 500, 400, 65)
+        self.radiobtn_device_incpect.setStyleSheet("QRadioButton{font: 16pt Helvetica MS;}"
+                                                   "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+        self.radiobtn_test_incpect = QRadioButton('Испытание', self)
+        self.radiobtn_test_incpect.setGeometry(700, 500, 400, 65)
+        self.radiobtn_test_incpect.setStyleSheet("QRadioButton{font: 16pt Helvetica MS;}"
+                                                 "QRadioButton::indicator { width: 30px; height: 30px;}")
+
+    def hide_second_window(self):  # кнопка закрыть форму на дочерней форме
+        self.hide()
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QDesktopWidget().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def get_data(self):
+        dict_of_params = read_data_txt()  # функция из модуля database
+        for keys, values in dict_of_params.items():
+            print(keys, values)
+            if keys == 'список несоответствий':
+                self.qlistw_defects.addItems(values)
+                break
+        if keys != 'список несоответствий':
+            QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список несоответствий.txt"')
 
 
 # класс для обработки ошибок, чтобы окно не вылетало и т.д.
@@ -276,7 +409,7 @@ def main():
     win = MainWindow()
     win.show()
     # sys.exit(app.exec_())
-    app.exec_()
+    app.exec()
 
 
 if __name__ == '__main__':

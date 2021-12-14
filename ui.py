@@ -158,6 +158,7 @@ class MainWindow(QWidget):
                                        "} QRadioButton{font: 30pt Helvetica MS;}"
                                        "QRadioButton::indicator { width: 30px; height: 30px;}")
 
+    # функция  управляем открытием нового второго окна
     def show_second_window(self):
         if self.second_window is None:
             self.second_window = SecondWindow()
@@ -249,7 +250,7 @@ class MainWindow(QWidget):
                 db_insert(param.text(), cbox_object, cbox_operator, shift)
                 param.setBackground(QColor("IndianRed"))
                 table_results = db_select()  # функция из database.py для для проверки
-                self.show_second_window()
+                self.show_second_window()  # функция в этом классе
 
             for row in table_results:
                 print('\nНаша таблица results БД db_results.db\n', row)
@@ -301,17 +302,21 @@ class SecondWindow(QWidget):
         font_cbox.setBold(True)
         font_cbox.setWeight(80)
 
+
+
+
+
         # лист параметров проверки
         self.qlistw_defects = QListWidget(self)
-        self.qlistw_defects.setGeometry(40, 50, 1000, 400)
+        self.qlistw_defects.setGeometry(40, 40, 1000, 440)
         # self.list_params.resize(500, 500)
         self.qlistw_defects.setStyleSheet('font-size: 30px;')
 
-        self.btn_save = QPushButton("Сохранить результат", self)
+        self.btn_save = QPushButton("Записать", self)
         self.btn_save.setGeometry(1070, 600, 200, 65)
         self.btn_save.setFont(font_lbl)
         # self.btn_next.setEnabled(False)
-        # self.btn_next.clicked.connect(self.get_objects)
+        self.btn_save.clicked.connect(self.save_results)
 
         self.btn_close = QPushButton("Закрыть форму", self)
         self.btn_close.clicked.connect(self.hide_second_window)
@@ -320,15 +325,48 @@ class SecondWindow(QWidget):
         # self.btn_prev.setEnabled(False)
         # self.btn_prev.clicked.connect(connect)
 
-        # бальная оценка несоотвествий
+        # список для комбобокса оценки последствий
+        # при создании  списка  и  используем  строковые    литералы.
+        list_consequences_grade = [
+            self.tr('10'),
+            self.tr('20'),
+            self.tr('30'),
+            self.tr('40'),
+            self.tr('50'),
+            self.tr('60'),
+            self.tr('70'),
+            self.tr('80'),
+            self.tr('90'),
+            self.tr('100')
+        ]
+
+        # список с оценки последствий
         self.cbox_consequences_grade = QComboBox(self)
         self.cbox_consequences_grade.setGeometry(QRect(500, 600, 80, 50))
         self.cbox_consequences_grade.setFont(font_cbox)
+        self.cbox_consequences_grade.clear()
+        self.cbox_consequences_grade.addItems(list_consequences_grade)
 
-        # список с оценки последствий
+        # список для комбобокса оценки несоответствий
+        list_defect_grade = [
+            self.tr('10'),
+            self.tr('20'),
+            self.tr('30'),
+            self.tr('40'),
+            self.tr('50'),
+            self.tr('60'),
+            self.tr('70'),
+            self.tr('80'),
+            self.tr('90'),
+            self.tr('100')
+        ]
+
+        # бальная оценка несоотвествий
         self.cbox_defect_grade = QComboBox(self)
         self.cbox_defect_grade.setGeometry(QRect(650, 600, 80, 50))
         self.cbox_defect_grade.setFont(font_cbox)
+        self.cbox_defect_grade.clear()
+        self.cbox_defect_grade.addItems(list_defect_grade)
 
         self.lineEdit_comment = QLineEdit(self)
         self.lineEdit_comment.setPlaceholderText('Добавьте комментарий')
@@ -373,8 +411,27 @@ class SecondWindow(QWidget):
         self.radiobtn_test_incpect.setStyleSheet("QRadioButton{font: 16pt Helvetica MS;}"
                                                  "QRadioButton::indicator { width: 30px; height: 30px;}")
 
+        # тут прописывает групбоксы для наших радио кнопок осмотра
+        self.grbox_rbtninspect = QButtonGroup()
+        self.grbox_rbtninspect.addButton(self.radiobtn_visual_incpect)  # 0 индекс
+        self.grbox_rbtninspect.addButton(self.radiobtn_device_incpect)  # 1 индекс
+        self.grbox_rbtninspect.addButton(self.radiobtn_test_incpect)  # 2 индекс
+
+        self.grbox_rbtnlvl = QButtonGroup()
+        self.grbox_rbtnlvl.addButton(self.radiobtn_lowlvl)
+        self.grbox_rbtnlvl.addButton(self.radiobtn_medlvl)
+        self.grbox_rbtnlvl.addButton(self.radiobtn_hightlvl)
+
     def hide_second_window(self):  # кнопка закрыть форму на дочерней форме
-        self.hide()
+        # self.check_visibility() #проверяем главное окно на отображение и показываем
+        self.hide()  # закрываем текущую форму
+
+    def check_visibility(self):
+        if self.mainwin.isVisible():
+            self.mainwin.hide()
+            print("Форма типа спряталась")
+        else:
+            self.mainwin.show()
 
     def center(self):
         qr = self.frameGeometry()
@@ -383,6 +440,7 @@ class SecondWindow(QWidget):
         self.move(qr.topLeft())
 
     def get_data(self):
+
         dict_of_params = read_data_txt()  # функция из модуля database
         for keys, values in dict_of_params.items():
             print(keys, values)
@@ -391,6 +449,48 @@ class SecondWindow(QWidget):
                 break
         if keys != 'список несоответствий':
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список несоответствий.txt"')
+
+    def save_results(self):
+        defect = self.qlistw_defects.currentItem()
+        grade = self.cbox_defect_grade.currentText()
+        cons_grade = self.cbox_consequences_grade.currentText()
+        detection_type = self.find_checked_rbtn_inspect()
+        importance_lvl = self.find_checked_rbtn_lvl()
+        comment = self.lineEdit_comment.text()
+
+        if defect is not None:
+            #db_delete()  # функция из database.py
+            db_connect()  # функция из database.py
+            db_insert_defects(defect.text(), grade, cons_grade, detection_type,
+                              importance_lvl, comment)  # функция из database.py
+            table_results = db_select()  # функция из database.py для для проверки
+            # self.hide_second_window()  # функция в этом классе
+
+            for row in table_results:
+                print('\nНаша таблица с добавлением results БД db_results.db\n', row)
+        else:
+            QMessageBox.critical(self, 'Ошибка', 'Не выбран параметр проверки!')
+
+    # функция возвращает имя выбранного элементы осмотра radiobutton
+    def find_checked_rbtn_inspect(self):
+        checklist = ([i for i, button in enumerate(self.grbox_rbtninspect.buttons()) if button.isChecked()])
+        for c in checklist:
+            if c == 0:
+                return 'Визуальный осмотр'
+            if c == 1:
+                return 'Диагностика приборами'
+            if c == 2:
+                return 'Испытание'
+
+    def find_checked_rbtn_lvl(self):
+        checklist = ([i for i, button in enumerate(self.grbox_rbtnlvl.buttons()) if button.isChecked()])
+        for c in checklist:
+            if c == 0:
+                return 'Низкий'
+            if c == 1:
+                return 'Средний'
+            if c == 2:
+                return 'Высокий'
 
 
 # класс для обработки ошибок, чтобы окно не вылетало и т.д.
@@ -408,8 +508,7 @@ def main():
     app = QApplication(sys.argv)
     win = MainWindow()
     win.show()
-    # sys.exit(app.exec_())
-    app.exec()
+    sys.exit(app.exec_())
 
 
 if __name__ == '__main__':

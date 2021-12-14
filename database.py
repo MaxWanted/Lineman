@@ -6,8 +6,6 @@ from datetime import datetime
 from PyQt5.QtWidgets import QWidget
 
 
-
-
 # создание  БД с таблицей
 def db_connect():
     connection = sqlite3.connect('db_results.db')
@@ -66,6 +64,23 @@ def db_insert(item, obj, oper, shift):
                     who_knows
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
                    (current_date, current_time, shift, oper, obj, item, '', '', '', '', '', '', '', '', '', ''))
+
+    connection.commit()
+    connection.close()
+
+
+# вставка данных из второй формы в таблицу
+def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment):
+    # все статичные данные для таблицы
+    current_date = str(datetime.now().date())
+
+    connection = sqlite3.connect('db_results.db')
+    cursor = connection.cursor()
+
+    cursor.execute("UPDATE results SET defect=?, importance_lvl=?, detection_type=?, grade=?, defect_grade=?, "
+                   "detection_date=?, comment=? "
+                   "WHERE ID = (SELECT MAX(ID) from results)",
+                   (defect, importance_lvl, detection_type, grade, cons_grade, current_date, comment))
 
     connection.commit()
     connection.close()

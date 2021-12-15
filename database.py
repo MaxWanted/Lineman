@@ -1,4 +1,5 @@
 """Модуль работы с базой данных sqlite3 и текстовыми файлами"""
+
 import os
 import sqlite3
 from datetime import datetime
@@ -36,10 +37,11 @@ def db_connect():
 
 
 # вставка данных в таблицу
-def db_insert(item, obj, oper, shift):
+def db_insert(item, obj, oper, shift, checkout):
     # все статичные данные для таблицы
-    current_date = str(datetime.now().date())
+    # current_date = str(datetime.now().date())
     date = datetime.today()
+    current_date = str(date.strftime('%d.%m.%Y'))
     current_time = str((date.strftime('%H:%M')))
 
     connection = sqlite3.connect('db_results.db')
@@ -63,24 +65,26 @@ def db_insert(item, obj, oper, shift):
                     defect_grade,
                     who_knows
                     ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                   (current_date, current_time, shift, oper, obj, item, '', '', '', '', '', '', '', '', '', ''))
+                   (current_date, current_time, shift, oper, obj, item, checkout, '', '', '', '', '', '', '', '', ''))
 
     connection.commit()
     connection.close()
 
 
-# вставка данных из второй формы в таблицу
-def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment):
+# вставка(обновление) данных из второй формы в таблицу
+def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment, solve_date, checkout):
     # все статичные данные для таблицы
-    current_date = str(datetime.now().date())
+    date = datetime.today()
+    current_date = str(date.strftime('%d.%m.%Y'))
 
     connection = sqlite3.connect('db_results.db')
     cursor = connection.cursor()
 
-    cursor.execute("UPDATE results SET defect=?, importance_lvl=?, detection_type=?, grade=?, defect_grade=?, "
-                   "detection_date=?, comment=? "
+    cursor.execute("UPDATE results SET checkout=?, defect=?, importance_lvl=?, detection_type=?, grade=?, "
+                   "defect_grade=?, detection_date=?, solve_date=?, comment=? "
                    "WHERE ID = (SELECT MAX(ID) from results)",
-                   (defect, importance_lvl, detection_type, grade, cons_grade, current_date, comment))
+                   (checkout, defect, importance_lvl, detection_type, cons_grade, grade, current_date, solve_date,
+                    comment))
 
     connection.commit()
     connection.close()

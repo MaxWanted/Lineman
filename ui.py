@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.uic.properties import QtGui, QtCore
 
 from database import *
+from authorization import *
 from random import randint
 
 
@@ -27,8 +28,10 @@ class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
         self.second_window = None  # для отображеняи 2го окна. функция show_second_window
+        self.login_window = None
         self.setupUi()  # генерирует интерфейс
         self.check_shift()  # определяет текущую смену в зависимости от времени
+        self.show_login_form()  # показывает окно авторизации при открытии программы
 
     # функция описывает интерфейс программы
     def setupUi(self):
@@ -181,6 +184,14 @@ class MainWindow(QWidget):
             self.second_window.close()
             self.second_window = None
 
+    def show_login_form(self):
+        if self.login_window is None:
+            self.login_window = LoginForm()
+            self.login_window.show()
+        else:
+            self.login_window.close()
+            self.lbl_info = None
+
     # положение окна программы
     def center(self):
         qr = self.frameGeometry()
@@ -213,17 +224,20 @@ class MainWindow(QWidget):
                 print('Проверка функции add_params- ' + key, value)
                 self.qlistw_params.addItems(value)
 
-    # функция обрабокти кнопки Загрузить список операторов
+    # функция загурзки выбранного оператора при атворизации
     def add_operators(self):
-        data = read_data_txt()  # функция из модуля database
-        self.cbox_operator.clear()
-        for key, value in data.items():
-            if key == 'список операторов':
-                self.cbox_operator.addItems(value)
-                print('Проверка функции add_operators-', value)
-                break
-        if key != 'список операторов':
-            QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')
+        with open('current_operator.txt', 'r') as file:
+            oper = file.readline()
+            self.cbox_operator.addItem(oper)
+        # data = read_data_txt()  # функция из модуля database
+        # self.cbox_operator.clear()
+        # for key, value in data.items():
+        # if key == 'список операторов':
+        # self.cbox_operator.addItems(value)
+        # print('Проверка функции add_operators-', value)
+        # break
+        # if key != 'список операторов':
+        # QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')
 
     # функция обработки кнопки Загрузить список объектов
     def add_objects(self):

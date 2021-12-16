@@ -9,32 +9,39 @@ from PyQt5.QtWidgets import QWidget
 
 # создание  БД с таблицей
 def db_connect():
-    connection = sqlite3.connect('db_results.db')
-    cursor = connection.cursor()
 
-    cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
-                id INTEGER PRIMARY KEY,
-                date TEXT,
-                time TEXT,
-                shift TEXT,
-                operator TEXT,
-                object_check TEXT,
-                parameter TEXT,
-                checkout TEXT,
-                defect TEXT,
-                importance_lvl TEXT,
-                detection_type TEXT,
-                detection_date TEXT,
-                solve_date TEXT,
-                comment TEXT,
-                grade INTEGER,
-                defect_grade INTEGER,
-                who_knows TEXT                                
-            )""")
+    try:
+        connection = sqlite3.connect('db_results.db')
+        cursor = connection.cursor()
+        print("База данных создана и успешно подключена к SQLite")
 
-    connection.commit()
-    connection.close()
+        cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
+                    id INTEGER PRIMARY KEY,
+                    date TEXT,
+                    time TEXT,
+                    shift TEXT,
+                    operator TEXT,
+                    object_check TEXT,
+                    parameter TEXT,
+                    checkout TEXT,
+                    defect TEXT,
+                    importance_lvl TEXT,
+                    detection_type TEXT,
+                    detection_date TEXT,
+                    solve_date TEXT,
+                    comment TEXT,
+                    grade INTEGER,
+                    defect_grade INTEGER,
+                    who_knows TEXT                                
+                )""")
 
+        connection.commit()
+        print("Таблица SQLite создана")
+
+        connection.close()
+
+    except sqlite3.Error as error:
+        print("Ошибка при подключении к sqlite", error)
 
 # вставка данных в таблицу
 def db_insert(item, obj, oper, shift, checkout):

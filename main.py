@@ -33,15 +33,16 @@ class MainWindow(QWidget):
         self.check_shift()  # определяет текущую смену в зависимости от времени
         self.show_login_form()  # показывает окно авторизации при открытии программы
 
+
     # функция описывает интерфейс программы
     def setupUi(self):
-
+        qss_file = open('style_file.css').read()
         self.resize(1280, 800)
         self.setFixedSize(1280, 800)
-
         self.center()
         self.setWindowTitle('АРМ "Обходчик"')
         # self.setGeometry(200, 200, 1150, 768)
+
 
         date = datetime.today()
         current_date = str(date.strftime('%d.%m.%Y'))
@@ -68,23 +69,23 @@ class MainWindow(QWidget):
         # надпись дата
         self.lbl_date = QLabel("Дата", self)
         self.lbl_date.setText(current_date)
-        self.lbl_date.setGeometry(250, 10, 100, 30)
-        self.lbl_date.setStyleSheet('border: 1px solid rgb(0, 121, 194); border-radius: 2px;')
+        self.lbl_date.setGeometry(250, 5, 100, 30)
+        self.lbl_date.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_date.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
         self.lbl_date.setFont(font_lbl)
 
         # надпись смена
         self.lbl_shift = QLabel("Дневная смена", self)
-        self.lbl_shift.setGeometry(400, 10, 150, 30)
-        self.lbl_shift.setStyleSheet('border: 1px solid rgb(0, 121, 194); border-radius: 2px;')
+        self.lbl_shift.setGeometry(400, 5, 150, 30)
+        self.lbl_shift.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_shift.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
         self.lbl_shift.setFont(font_lbl)
 
         # надпись информация
-        self.lbl_info = QLabel("Информация", self)
-        self.lbl_info.setGeometry(650, 10, 590, 30)
+        self.lbl_info = QLabel('Нажмите кнопку "Загрузить данные" слева', self)
+        self.lbl_info.setGeometry(650, 5, 590, 30)
         self.lbl_info.setWordWrap(True)
-        self.lbl_info.setStyleSheet('border: 1px solid rgb(0, 121, 194); border-radius: 2px;')
+        self.lbl_info.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_info.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
         self.lbl_info.setFont(self.font_info)
 
@@ -95,47 +96,45 @@ class MainWindow(QWidget):
         self.cbox_operator.setGeometry(QRect(40, 80, 400, 50))
         self.cbox_operator.setFont(font_cbox)
 
+
         self.lbl_obj = QLabel('<h3 style="color: rgb(0, 121, 194)">Объект проверки</h3> ', self)
         self.lbl_obj.setGeometry(500, 60, 200, 20)
         # список выбора объекта проверки
         self.cbox_object = QComboBox(self)
         self.cbox_object.setGeometry(QRect(500, 80, 400, 50))
         self.cbox_object.setFont(font_cbox)
+        self.cbox_object.setStyleSheet(qss_file)
 
         # кнопка загрузки данных из файлов
-        icon = QIcon()
-        icon.addFile('icons/download.png')
+
         self.btn_loaddata = QPushButton("  Загрузить данные", self)
         self.btn_loaddata.setGeometry(40, 5, 160, 40)
-        self.btn_loaddata.setIcon(icon)
+        self.btn_loaddata.setIcon(QIcon('icons/download.png'))
         self.btn_loaddata.setIconSize(QSize(25, 25))
         self.btn_loaddata.clicked.connect(self.click_add_data)
         self.btn_loaddata.setStyleSheet("font: bold")
 
         # кнопка подтвержедния выбора оператора и объекта проверки
-        icon.addFile('icons/confirm.png')
         self.btn_confirm = QPushButton("  Подтвердить выбор", self)
         self.btn_confirm.setGeometry(1020, 70, 220, 65)
         self.btn_confirm.setEnabled(False)
         self.btn_confirm.setFont(font_lbl)
-        self.btn_confirm.setIcon(icon)
-        self.btn_confirm.setIconSize(QSize(25, 25))
+        self.btn_confirm.setIcon(QIcon('icons/confirm.png'))
+        self.btn_confirm.setIconSize(QSize(25, 25))        #)
         # используем lambda фукнцию т.к. она необходима для передач параметров
         self.btn_confirm.clicked.connect(self.click_add_params)
 
         self.btn_exit = QPushButton("  Выход", self)
         self.btn_exit.clicked.connect(QApplication.instance().quit)
         self.btn_exit.setFont(font_lbl)
-        icon.addFile('icons/exit.png')
-        self.btn_exit.setIcon(icon)
+        self.btn_exit.setIcon(QIcon('icons/exit.png'))
         self.btn_exit.setIconSize(QSize(25, 25))
         self.btn_exit.setGeometry(1040, 700, 200, 65)
 
         self.btn_save = QPushButton("  Записать", self)
         self.btn_save.setFont(font_lbl)
         self.btn_save.setGeometry(700, 700, 200, 65)
-        icon.addFile('icons/save.png')
-        self.btn_save.setIcon(icon)
+        self.btn_save.setIcon(QIcon('icons/save.png'))
         self.btn_save.setIconSize(QSize(25, 25))
         self.btn_save.setEnabled(False)
         self.btn_save.clicked.connect(self.click_save_results)
@@ -153,19 +152,35 @@ class MainWindow(QWidget):
 
         self.radiobtn_yes = QRadioButton('ДА', self)
         self.radiobtn_yes.setGeometry(400, 700, 200, 65)
-        self.radiobtn_yes.setStyleSheet("QRadioButton"
-                                        "{"
-                                        "background-color : LightGreen"
-                                        "} QRadioButton{font: 30pt Helvetica MS;}"
-                                        "QRadioButton::indicator { width: 30px; height: 30px;}")
+        self.radiobtn_yes.setStyleSheet(("QRadioButton"
+                                           "{"
+                                           "background-color : LightGreen"
+                                           "} QRadioButton{font: 26pt Helvetica MS;}"
+                                           "QRadioButton::indicator { width: 30px; height: 30px;}"))
+
+        self.lblyes = QLabel(self)
+        self.lblyes.setStyleSheet("background-color : LightGreen")
+        self.lblyes.setGeometry(400, 760, 100, 10)
 
         self.radiobtn_no = QRadioButton('НЕТ', self)
-        self.radiobtn_no.setGeometry(100, 700, 200, 65)
-        self.radiobtn_no.setStyleSheet("QRadioButton"
-                                       "{"
-                                       "background-color : IndianRed"
-                                       "} QRadioButton{font: 30pt Helvetica MS;}"
-                                       "QRadioButton::indicator { width: 30px; height: 30px;}")
+        self.radiobtn_no.setGeometry(150, 700, 200, 65)
+
+        self.lblno = QLabel(self)
+        self.lblno.setStyleSheet("background-color : IndianRed")
+        self.lblno.setGeometry(150, 760, 100, 10)
+
+
+        self.btn_confirm.setStyleSheet(qss_file)
+        self.btn_exit.setStyleSheet(qss_file)
+        self.btn_save.setStyleSheet(qss_file)
+        self.btn_loaddata.setStyleSheet(qss_file)
+        self.cbox_object.setStyleSheet(qss_file)
+        self.cbox_operator.setStyleSheet(qss_file)
+        self.setStyleSheet(qss_file)
+        self.radiobtn_yes.setStyleSheet(qss_file)
+        self.radiobtn_no.setStyleSheet(qss_file)
+
+
 
     # функция оперделяет  дневную или ночную смену  от 8 до 20 часов
     def check_shift(self):
@@ -320,6 +335,7 @@ class SecondWindow(QWidget):
 
     def setupUI(self):
 
+        qss_file = open('style_file.css').read()
         self.resize(1280, 800)
         self.setFixedSize(1280, 800)
 
@@ -492,6 +508,14 @@ class SecondWindow(QWidget):
         # d = (current_time.strftime('%m/%d/%Y'))
         self.edit_solve_date.setDate(current_date)
 
+
+        self.btn_save.setStyleSheet(qss_file)
+        self.btn_close.setStyleSheet(qss_file)
+        self.cbox_consequences_grade.setStyleSheet(qss_file)
+        self.cbox_defect_grade.setStyleSheet(qss_file)
+        self.setStyleSheet(qss_file)
+
+
     def hide_second_window(self):  # кнопка закрыть форму на дочерней форме
         # self.check_visibility() #проверяем главное окно на отображение и показываем
         self.hide()  # закрываем текущую форму
@@ -506,7 +530,7 @@ class SecondWindow(QWidget):
     def get_data(self):
         dict_of_params = read_data_txt()  # функция из модуля database
         for keys, values in dict_of_params.items():
-            #print(keys, values)
+            # print(keys, values)
             if keys == 'список несоответствий':
                 self.qlistw_defects.addItems(values)
                 break

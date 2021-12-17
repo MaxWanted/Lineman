@@ -13,7 +13,7 @@ class LoginForm(QWidget):
 
     def __init__(self):
         super(LoginForm, self).__init__()
-
+        qss_file = open('style_file.css').read()
         self.setWindowTitle('Окно авторизации')
         self.resize(500, 120)
         self.setFixedSize(500,120)
@@ -31,7 +31,7 @@ class LoginForm(QWidget):
         self.font_cbox.setWeight(80)
 
         layout = QGridLayout()
-        label_name = QLabel('<font size ="4"> Логин: </font>')
+        label_name = QLabel('<font size ="4"> Имя: </font>')
         # self.lineEdit_username = QLineEdit()
         # self.lineEdit_username.setPlaceholderText('Введите имя для входа')
         self.cbox_oper = QComboBox()
@@ -55,11 +55,13 @@ class LoginForm(QWidget):
 
         self.setLayout(layout)
 
+        self.setStyleSheet(qss_file)
+
         data = read_data_txt()  # функция из модуля database
         for key, value in data.items():
             if key == 'список операторов':
                 self.cbox_oper.addItems(value)
-                print('Проверка функции add_operators-', value)
+                #print('Проверка функции add_operators-', value)
                 break
         if key != 'список операторов':
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')

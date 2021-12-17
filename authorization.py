@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QWidget, QGridLayout, QLabel, QLineEdit, QApplicatio
     QComboBox
 from PyQt5.uic.properties import QtWidgets, QtCore, QtGui
 from database import read_data_txt
-from ui import *
+from main import *
 
 
 class LoginForm(QWidget):
@@ -14,29 +14,42 @@ class LoginForm(QWidget):
     def __init__(self):
         super(LoginForm, self).__init__()
 
-        self.setWindowTitle('Окно входа')
+        self.setWindowTitle('Окно авторизации')
         self.resize(500, 120)
         self.setFixedSize(500,120)
         self.setWindowModality(Qt.ApplicationModal)
         self.setAttribute(Qt.WA_DeleteOnClose)
+
+        self.font_lbl = QFont()
+        self.font_lbl.setPointSize(12)
+        self.font_lbl.setBold(True)
+        self.font_lbl.setWeight(75)
+
+        self.font_cbox = QFont()
+        self.font_cbox.setPointSize(18)
+        self.font_cbox.setBold(True)
+        self.font_cbox.setWeight(80)
 
         layout = QGridLayout()
         label_name = QLabel('<font size ="4"> Логин: </font>')
         # self.lineEdit_username = QLineEdit()
         # self.lineEdit_username.setPlaceholderText('Введите имя для входа')
         self.cbox_oper = QComboBox()
+        self.cbox_oper.setFont(self.font_cbox)
         layout.addWidget(self.cbox_oper, 0, 1)
         layout.addWidget(label_name, 0, 0)
         # layout.addWidget(self.lineEdit_username, 0, 1)
 
         label_password = QLabel('<font size ="4"> Пароль: </font>')
         self.lineEdit_password = QLineEdit()
-        self.lineEdit_password.setPlaceholderText('Введите пароль')
+        #self.lineEdit_password.setPlaceholderText('Введите пароль')
+        self.lineEdit_password.setFont(self.font_cbox)
         layout.addWidget(label_password, 1, 0)
         layout.addWidget(self.lineEdit_password, 1, 1)
 
         btn_login = QPushButton('Войти')
         btn_login.clicked.connect(self.login_check)
+        btn_login.setFont(self.font_lbl)
         layout.addWidget(btn_login, 2, 0, 1, 2)
         layout.setRowMinimumHeight(2, 75)
 
@@ -65,13 +78,13 @@ class LoginForm(QWidget):
         msg = QMessageBox()
         if self.lineEdit_password.text() == '123':
             # пока на скорую руку через файл, потом сделаем через БД
-            with open('current_operator.txt', 'w') as file:
+            with open('buffer_operator.txt', 'w') as file:
                 file.write(self.cbox_oper.currentText())
-            msg.setText('Упешно')
+            msg.setText('Вы успешно вошли в программу')
             msg.exec_()
-            self.close()
+            self.hide()
         else:
-            msg.setText('Неверные данные')
+            msg.setText('Неверный пароль!')
             msg.exec_()
 
     def login(self):

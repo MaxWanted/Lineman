@@ -105,12 +105,12 @@ class MainWindow(QWidget):
         # кнопка загрузки данных из файлов
         icon = QIcon()
         icon.addFile('icons/download.png')
-        self.btn_addoperators = QPushButton("  Загрузить данные", self)
-        self.btn_addoperators.setGeometry(40, 5, 160, 40)
-        self.btn_addoperators.setIcon(icon)
-        self.btn_addoperators.setIconSize(QSize(25, 25))
-        self.btn_addoperators.clicked.connect(self.click_add_data)
-        self.btn_addoperators.setStyleSheet("font: bold")
+        self.btn_loaddata = QPushButton("  Загрузить данные", self)
+        self.btn_loaddata.setGeometry(40, 5, 160, 40)
+        self.btn_loaddata.setIcon(icon)
+        self.btn_loaddata.setIconSize(QSize(25, 25))
+        self.btn_loaddata.clicked.connect(self.click_add_data)
+        self.btn_loaddata.setStyleSheet("font: bold")
 
         # кнопка подтвержедния выбора оператора и объекта проверки
         icon.addFile('icons/confirm.png')
@@ -226,7 +226,7 @@ class MainWindow(QWidget):
 
     # функция загурзки выбранного оператора при атворизации
     def add_operators(self):
-        with open('current_operator.txt', 'r') as file:
+        with open('buffer_operator.txt', 'r') as file:
             oper = file.readline()
             self.cbox_operator.addItem(oper)
         # data = read_data_txt()  # функция из модуля database
@@ -257,7 +257,7 @@ class MainWindow(QWidget):
         if self.cbox_object.currentText() and self.cbox_operator.currentText() is not None:
             self.lbl_info.setText('Операторы и объекты успешно загружены')
 
-        self.btn_addoperators.setEnabled(False)
+        self.btn_loaddata.setEnabled(False)
         self.btn_confirm.setEnabled(True)
 
     # запись выделенного параметра в базу данных и окрагиванием цвета в лист боксе
@@ -277,21 +277,20 @@ class MainWindow(QWidget):
                 db_insert(param.text(), cbox_object, cbox_operator, shift, checkout='Да')  # функция из database.py
                 param.setBackground(QColor("LightGreen"))  # устанавливаем цвет после записи в БД
                 param.setFlags(Qt.NoItemFlags)  # блокируем записанный элемент
-                table_results = db_select()  # функция из database.py для для проверки
+                # table_results = db_select()  # функция из database.py для для проверки
                 self.lbl_info.setText('Данные записаны')
 
             if self.radiobtn_no.isChecked():  # если выбрано НЕТ
-                db_insert(param.text(), cbox_object, cbox_operator, shift, checkout='')
                 param.setBackground(QColor("IndianRed"))
                 param.setFlags(Qt.NoItemFlags)  # блокируем записанный элемент
-                table_results = db_select()  # функция из database.py для для проверки
                 self.show_second_window()  # функция в этом классе
                 self.lbl_info.setText('Данные несоответствий записаны')
-
-            for row in table_results:
-                print('\nНаша таблица results БД db_results.db\n', row)
         else:
             QMessageBox.critical(self, 'Ошибка', 'Не выбран параметр проверки!')
+
+        table_results = db_select()
+        for row in table_results:
+            print('\nНаша таблица results БД db_results.db\n', row)
 
     # для обработки ошибок, чтобы окно не вылетало и т.д.
     def break_thread(self):
@@ -496,6 +495,7 @@ class SecondWindow(QWidget):
     def hide_second_window(self):  # кнопка закрыть форму на дочерней форме
         # self.check_visibility() #проверяем главное окно на отображение и показываем
         self.hide()  # закрываем текущую форму
+        self.close()
 
     def center(self):
         qr = self.frameGeometry()
@@ -506,7 +506,7 @@ class SecondWindow(QWidget):
     def get_data(self):
         dict_of_params = read_data_txt()  # функция из модуля database
         for keys, values in dict_of_params.items():
-            print(keys, values)
+            #print(keys, values)
             if keys == 'список несоответствий':
                 self.qlistw_defects.addItems(values)
                 break
@@ -559,15 +559,6 @@ class SecondWindow(QWidget):
                 return 'Средний'
             if c == 2:
                 return 'Высокий'
-
-    def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Сообщение',
-                                     "Уверены? Все несохранённые данные будут потеряны!", QMessageBox.Yes |
-                                     QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
 
 
 # класс для обработки ошибок, управление потоком

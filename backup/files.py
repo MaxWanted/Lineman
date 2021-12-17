@@ -1,11 +1,11 @@
 """
 В модуле объявлены функции работающие с чтением файлов и передающие результаты
-в модуль ui.py
+в модуль main.py
 """
 
 import os
 import sqlite3
-from ui import *
+from main import *
 
 
 

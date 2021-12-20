@@ -9,11 +9,13 @@ from PyQt5.QtWidgets import QWidget
 
 # создание  БД с таблицей
 def db_connect():
-
+    date = datetime.today()
+    current_date = str((date.strftime('%d.%m.%Y %H:%M')))
     try:
         connection = sqlite3.connect('db_results.db')
         cursor = connection.cursor()
-        print("База данных создана и успешно подключена к SQLite")
+
+        #log_db("база данных создана и успешно подключена к SQLite")  # фукнция заиси логов
 
         cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
                     id INTEGER PRIMARY KEY,
@@ -36,12 +38,13 @@ def db_connect():
                 )""")
 
         connection.commit()
-        print("Таблица SQLite создана")
-
+        #log_db('таблица БД успешно создана')
         connection.close()
 
     except sqlite3.Error as error:
         print("Ошибка при подключении к sqlite", error)
+        log_db(error)
+
 
 # вставка данных в таблицу
 def db_insert(item, obj, oper, shift, checkout):
@@ -51,53 +54,64 @@ def db_insert(item, obj, oper, shift, checkout):
     current_date = str(date.strftime('%d.%m.%Y'))
     current_time = str((date.strftime('%H:%M')))
 
-    connection = sqlite3.connect('db_results.db')
-    cursor = connection.cursor()
+    try:
+        connection = sqlite3.connect('db_results.db')
+        cursor = connection.cursor()
 
-    cursor.execute("""INSERT INTO results (
-                    date,
-                    time,
-                    shift,
-                    operator,
-                    object_check,
-                    parameter,
-                    checkout,
-                    defect,
-                    importance_lvl,
-                    detection_type,
-                    detection_date,
-                    solve_date,
-                    comment,
-                    grade,
-                    defect_grade,
-                    who_knows
-                    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                   (current_date, current_time, shift, oper, obj, item, checkout, '', '', '', '', '', '', '', '', ''))
+        cursor.execute("""INSERT INTO results (
+                        date,
+                        time,
+                        shift,
+                        operator,
+                        object_check,
+                        parameter,
+                        checkout,
+                        defect,
+                        importance_lvl,
+                        detection_type,
+                        detection_date,
+                        solve_date,
+                        comment,
+                        grade,
+                        defect_grade,
+                        who_knows
+                        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                       (current_date, current_time, shift, oper, obj, item, checkout, '', '', '', '', '', '', '', '', ''))
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        #log_db('данные положительной проверки успешно записаны в базу данных ')
+        connection.close()
+
+    except sqlite3.Error as error:
+        print("Ошибка при подключении к sqlite", error)
+        log_db(error)
 
 
 # вставка(обновление) данных из второй формы в таблицу
 def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment, solve_date, checkout):
     # все статичные данные для таблицы
     date = datetime.today()
-    current_date = str(date.strftime('%d.%m.%Y'))
+    current_date = str(date.strftime('%d.%m.%Y'))  # форматируем дату в российский формат
 
-    connection = sqlite3.connect('db_results.db')
-    cursor = connection.cursor()
+    try:
+        connection = sqlite3.connect('db_results.db')
+        cursor = connection.cursor()
 
-    cursor.execute("UPDATE results SET checkout=?, defect=?, importance_lvl=?, detection_type=?, grade=?, "
-                   "defect_grade=?, detection_date=?, solve_date=?, comment=? "
-                   "WHERE ID = (SELECT MAX(ID) from results)",
-                   (checkout, defect, importance_lvl, detection_type, cons_grade, grade, current_date, solve_date,
-                    comment))
+        cursor.execute("UPDATE results SET checkout=?, defect=?, importance_lvl=?, detection_type=?, grade=?, "
+                       "defect_grade=?, detection_date=?, solve_date=?, comment=? "
+                       "WHERE ID = (SELECT MAX(ID) from results)",
+                       (checkout, defect, importance_lvl, detection_type, cons_grade, grade, current_date, solve_date,
+                        comment))
 
-    connection.commit()
-    connection.close()
+        connection.commit()
+        #log_db('данные проверки несоответствий успешно записаны в базу данных ')
+        connection.close()
 
+    except sqlite3.Error as error:
+        print("Ошибка при подключении к sqlite", error)
+        log_db(error)
 
-# выборка из БД
+# выборка из БД для проверки
 def db_select():
     connection = sqlite3.connect('db_results.db')
     cursor = connection.cursor()
@@ -107,13 +121,21 @@ def db_select():
     connection.close()
 
 
-# удаление из бД
+# удаление из бД  если необходимо
 def db_delete():
     connection = sqlite3.connect('db_results.db')
     cursor = connection.cursor()
     cursor.execute("DELETE FROM results")
     connection.commit()
     connection.close()
+
+
+# функция логирования
+def log_db(msg):
+    date = datetime.today()
+    current_date = str((date.strftime('%d.%m.%Y %H:%M')))
+    with open('temp/logs.txt', 'a') as file:
+        file.write(current_date + ' ' + msg + '\n')
 
 
 # отдельные функции чтения txt файлов

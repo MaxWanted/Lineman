@@ -1,3 +1,5 @@
+"""Модуль отвечает за атворизацию пользователей по имени и паролю"""
+
 import sys
 
 from PyQt5.QtCore import Qt
@@ -16,7 +18,7 @@ class LoginForm(QWidget):
         qss_file = open('style_file.css').read()
         self.setWindowTitle('Окно авторизации')
         self.resize(500, 120)
-        self.setFixedSize(500,120)
+        self.setFixedSize(500, 120)
         self.setWindowModality(Qt.ApplicationModal)
         self.setAttribute(Qt.WA_DeleteOnClose)
 
@@ -26,7 +28,7 @@ class LoginForm(QWidget):
         self.font_lbl.setWeight(75)
 
         self.font_cbox = QFont()
-        self.font_cbox.setPointSize(18)
+        self.font_cbox.setPointSize(16)
         self.font_cbox.setBold(True)
         self.font_cbox.setWeight(80)
 
@@ -42,7 +44,7 @@ class LoginForm(QWidget):
 
         label_password = QLabel('<font size ="4"> Пароль: </font>')
         self.lineEdit_password = QLineEdit()
-        #self.lineEdit_password.setPlaceholderText('Введите пароль')
+        # self.lineEdit_password.setPlaceholderText('Введите пароль')
         self.lineEdit_password.setFont(self.font_cbox)
         layout.addWidget(label_password, 1, 0)
         layout.addWidget(self.lineEdit_password, 1, 1)
@@ -55,13 +57,11 @@ class LoginForm(QWidget):
 
         self.setLayout(layout)
 
-        self.setStyleSheet(qss_file)
-
         data = read_data_txt()  # функция из модуля database
         for key, value in data.items():
             if key == 'список операторов':
                 self.cbox_oper.addItems(value)
-                #print('Проверка функции add_operators-', value)
+                # print('Проверка функции add_operators-', value)
                 break
         if key != 'список операторов':
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')
@@ -77,11 +77,17 @@ class LoginForm(QWidget):
             event.ignore()
 
     def login_check(self):
+        date = datetime.today()
+        current_date = str((date.strftime('%d.%m.%Y %H:%M')))
+
         msg = QMessageBox()
-        if self.lineEdit_password.text() == '123':
-            # пока на скорую руку через файл, потом сделаем через БД
-            with open('buffer_operator.txt', 'w') as file:
+        if self.lineEdit_password.text() == 'Age12345':
+            # пока на скорую руку через файл, потом можно сделать через БД
+            with open('temp/buffer_operator.txt', 'w') as file:
                 file.write(self.cbox_oper.currentText())
+            with open('temp/logs.txt', 'a') as file:
+                file.write(current_date + ' вход в систему: ' + self.cbox_oper.currentText() + '\n')
+
             msg.setText('Вы успешно вошли в программу')
             msg.exec_()
             self.hide()

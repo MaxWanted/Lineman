@@ -1,4 +1,4 @@
-"""Модуль описывает все окна программы и основной функционал"""
+"""Модуль описывает два рабочих окна программы и основной функционал"""
 
 import sys, os, os.path, sqlite3
 from datetime import time
@@ -33,7 +33,6 @@ class MainWindow(QWidget):
         self.check_shift()  # определяет текущую смену в зависимости от времени
         self.show_login_form()  # показывает окно авторизации при открытии программы
 
-
     # функция описывает интерфейс программы
     def setupUi(self):
         qss_file = open('style_file.css').read()
@@ -42,7 +41,6 @@ class MainWindow(QWidget):
         self.center()
         self.setWindowTitle('АРМ "Обходчик"')
         # self.setGeometry(200, 200, 1150, 768)
-
 
         date = datetime.today()
         current_date = str(date.strftime('%d.%m.%Y'))
@@ -96,14 +94,12 @@ class MainWindow(QWidget):
         self.cbox_operator.setGeometry(QRect(40, 80, 400, 50))
         self.cbox_operator.setFont(font_cbox)
 
-
         self.lbl_obj = QLabel('<h3 style="color: rgb(0, 121, 194)">Объект проверки</h3> ', self)
         self.lbl_obj.setGeometry(500, 60, 200, 20)
         # список выбора объекта проверки
         self.cbox_object = QComboBox(self)
         self.cbox_object.setGeometry(QRect(500, 80, 400, 50))
         self.cbox_object.setFont(font_cbox)
-        self.cbox_object.setStyleSheet(qss_file)
 
         # кнопка загрузки данных из файлов
 
@@ -120,12 +116,13 @@ class MainWindow(QWidget):
         self.btn_confirm.setEnabled(False)
         self.btn_confirm.setFont(font_lbl)
         self.btn_confirm.setIcon(QIcon('icons/confirm.png'))
-        self.btn_confirm.setIconSize(QSize(25, 25))        #)
+        self.btn_confirm.setIconSize(QSize(25, 25))  # )
         # используем lambda фукнцию т.к. она необходима для передач параметров
         self.btn_confirm.clicked.connect(self.click_add_params)
 
         self.btn_exit = QPushButton("  Выход", self)
-        self.btn_exit.clicked.connect(QApplication.instance().quit)
+        # self.btn_exit.clicked.connect(QApplication.instance().quit)
+        self.btn_exit.clicked.connect(self.close)
         self.btn_exit.setFont(font_lbl)
         self.btn_exit.setIcon(QIcon('icons/exit.png'))
         self.btn_exit.setIconSize(QSize(25, 25))
@@ -153,10 +150,10 @@ class MainWindow(QWidget):
         self.radiobtn_yes = QRadioButton('ДА', self)
         self.radiobtn_yes.setGeometry(400, 700, 200, 65)
         self.radiobtn_yes.setStyleSheet(("QRadioButton"
-                                           "{"
-                                           "background-color : LightGreen"
-                                           "} QRadioButton{font: 26pt Helvetica MS;}"
-                                           "QRadioButton::indicator { width: 30px; height: 30px;}"))
+                                         "{"
+                                         "background-color : LightGreen"
+                                         "} QRadioButton{font: 26pt Helvetica MS;}"
+                                         "QRadioButton::indicator { width: 30px; height: 30px;}"))
 
         self.lblyes = QLabel(self)
         self.lblyes.setStyleSheet("background-color : LightGreen")
@@ -169,18 +166,12 @@ class MainWindow(QWidget):
         self.lblno.setStyleSheet("background-color : IndianRed")
         self.lblno.setGeometry(150, 760, 100, 10)
 
-
         self.btn_confirm.setStyleSheet(qss_file)
         self.btn_exit.setStyleSheet(qss_file)
         self.btn_save.setStyleSheet(qss_file)
         self.btn_loaddata.setStyleSheet(qss_file)
-        self.cbox_object.setStyleSheet(qss_file)
-        self.cbox_operator.setStyleSheet(qss_file)
-        self.setStyleSheet(qss_file)
         self.radiobtn_yes.setStyleSheet(qss_file)
         self.radiobtn_no.setStyleSheet(qss_file)
-
-
 
     # функция оперделяет  дневную или ночную смену  от 8 до 20 часов
     def check_shift(self):
@@ -216,11 +207,15 @@ class MainWindow(QWidget):
 
     # диалоговое окно выхода при закрытии формы на керстик
     def closeEvent(self, event):
+        date = datetime.today()
+        current_date = str((date.strftime('%d.%m.%Y %H:%M')))
         reply = QMessageBox.question(self, 'Сообщение',
                                      "Уверены? Все несохранённые данные будут потеряны!", QMessageBox.Yes |
                                      QMessageBox.No, QMessageBox.No)
         if reply == QMessageBox.Yes:
             event.accept()
+            with open('temp/logs.txt', 'a') as file:
+                file.write(current_date + ' завершение работы программы' + '\n')
         else:
             event.ignore()
 
@@ -241,7 +236,7 @@ class MainWindow(QWidget):
 
     # функция загурзки выбранного оператора при атворизации
     def add_operators(self):
-        with open('buffer_operator.txt', 'r') as file:
+        with open('temp/buffer_operator.txt', 'r') as file:
             oper = file.readline()
             self.cbox_operator.addItem(oper)
         # data = read_data_txt()  # функция из модуля database
@@ -267,6 +262,9 @@ class MainWindow(QWidget):
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список объектов.txt"')
 
     def click_add_data(self):  # кнопка "Загрузить данные"
+        date = datetime.today()
+        current_date = str((date.strftime('%d.%m.%Y %H:%M')))
+
         self.add_objects()
         self.add_operators()
         if self.cbox_object.currentText() and self.cbox_operator.currentText() is not None:
@@ -377,15 +375,11 @@ class SecondWindow(QWidget):
 
         self.btn_close = QPushButton(" Закрыть форму", self)
         self.btn_close.clicked.connect(self.hide_second_window)
-        icon.addFile('icons/exit.png')
-        self.btn_close.setIcon(icon)
+        self.btn_close.setIcon(QIcon('icons/exit.png'))
         self.btn_close.setIconSize(QSize(25, 25))
         self.btn_close.setGeometry(1070, 700, 200, 65)
         self.btn_close.setFont(self.font_lbl)
         self.btn_close.setEnabled(False)
-
-        # self.btn_prev.setEnabled(False)
-        # self.btn_prev.clicked.connect(connect)
 
         # список для комбобокса оценки последствий
         # при создании  списка  и  используем  строковые    литералы.
@@ -404,11 +398,11 @@ class SecondWindow(QWidget):
 
         self.lbl_cons_grade = QLabel('Бальная оценка последствий', self)
         self.lbl_cons_grade.setFont(self.font_lbl)
-        self.lbl_cons_grade.setStyleSheet('border: 2px solid RoyalBlue; border-radius: 5px;')
-        self.lbl_cons_grade.setGeometry(440, 570, 260, 40)
+        self.lbl_cons_grade.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
+        self.lbl_cons_grade.setGeometry(440, 580, 260, 40)
         # список с оценки последствий
         self.cbox_consequences_grade = QComboBox(self)
-        self.cbox_consequences_grade.setGeometry(QRect(540, 620, 80, 50))
+        self.cbox_consequences_grade.setGeometry(QRect(540, 630, 80, 50))
         self.cbox_consequences_grade.setFont(self.font_cbox)
         self.cbox_consequences_grade.clear()
         self.cbox_consequences_grade.addItems(list_consequences_grade)
@@ -429,12 +423,12 @@ class SecondWindow(QWidget):
 
         self.lbl_defect_grade = QLabel('Бальная оценка несоответствий', self)
         self.lbl_defect_grade.setFont(self.font_lbl)
-        self.lbl_defect_grade.setStyleSheet('border: 2px solid RoyalBlue; border-radius: 5px;')
-        self.lbl_defect_grade.setGeometry(730, 570, 300, 40)
+        self.lbl_defect_grade.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
+        self.lbl_defect_grade.setGeometry(730, 580, 300, 40)
 
         # бальная оценка несоотвествий
         self.cbox_defect_grade = QComboBox(self)
-        self.cbox_defect_grade.setGeometry(QRect(830, 620, 80, 50))
+        self.cbox_defect_grade.setGeometry(QRect(830, 630, 80, 50))
         self.cbox_defect_grade.setFont(self.font_cbox)
         self.cbox_defect_grade.clear()
         self.cbox_defect_grade.addItems(list_defect_grade)
@@ -442,7 +436,7 @@ class SecondWindow(QWidget):
         # текстовое поле воода для комментария
         self.lineEdit_comment = QLineEdit('Комментарий', self)
         # self.lineEdit_comment.setPlaceholderText('Добавьте комментарий')
-        self.lineEdit_comment.setGeometry(500, 700, 400, 60)
+        self.lineEdit_comment.setGeometry(450, 710, 450, 60)
 
         self.lbllevel = QLabel("Уровень важности", self)
         self.lbllevel.setFont(self.font_lbl)
@@ -501,20 +495,19 @@ class SecondWindow(QWidget):
         self.grbox_rbtnlvl.addButton(self.radiobtn_medlvl)
         self.grbox_rbtnlvl.addButton(self.radiobtn_hightlvl)
 
+        self.lbllevel = QLabel("Дата устранения", self)
+        self.lbllevel.setFont(self.font_lbl)
+        self.lbllevel.setGeometry(50, 570, 200, 65)
+
         current_date = datetime.now()
         self.edit_solve_date = QDateEdit(self)
-        self.edit_solve_date.setGeometry(50, 620, 200, 80)
+        self.edit_solve_date.setGeometry(50, 630, 200, 80)
         self.edit_solve_date.setFont(self.font_lbl)
         # d = (current_time.strftime('%m/%d/%Y'))
         self.edit_solve_date.setDate(current_date)
 
-
         self.btn_save.setStyleSheet(qss_file)
         self.btn_close.setStyleSheet(qss_file)
-        self.cbox_consequences_grade.setStyleSheet(qss_file)
-        self.cbox_defect_grade.setStyleSheet(qss_file)
-        self.setStyleSheet(qss_file)
-
 
     def hide_second_window(self):  # кнопка закрыть форму на дочерней форме
         # self.check_visibility() #проверяем главное окно на отображение и показываем
@@ -538,13 +531,13 @@ class SecondWindow(QWidget):
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список несоответствий.txt"')
 
     def click_save_results(self):
-        defect = self.qlistw_defects.currentItem()
-        defect_grade = self.cbox_defect_grade.currentText()
-        cons_grade = self.cbox_consequences_grade.currentText()
-        detection_type = self.find_checked_rbtn_inspect()
-        importance_lvl = self.find_checked_rbtn_lvl()
-        comment = self.lineEdit_comment.text()
-        solve_date = self.edit_solve_date.text()
+        defect = self.qlistw_defects.currentItem()  # несоответсвие
+        defect_grade = self.cbox_defect_grade.currentText()  # бальная оценка несоотвествия
+        cons_grade = self.cbox_consequences_grade.currentText()  # бальная оценка последствий
+        detection_type = self.find_checked_rbtn_inspect()  # типа обнаружения
+        importance_lvl = self.find_checked_rbtn_lvl()  # уровень важности
+        comment = self.lineEdit_comment.text()  # комментарий
+        solve_date = self.edit_solve_date.text()  # дата устранения
 
         self.btn_close.setEnabled(True)  # делаем форму закрытия активной после записи данных
 
@@ -556,6 +549,7 @@ class SecondWindow(QWidget):
             table_results = db_select()  # функция из database.py для для проверки
             self.hide_second_window()  # функция в этом классе
 
+            # выводим в консоль для проверки
             for row in table_results:
                 print('\nНаша таблица с добавлением results БД db_results.db\n', row)
         else:
@@ -584,11 +578,21 @@ class SecondWindow(QWidget):
             if c == 2:
                 return 'Высокий'
 
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 'Закрытие формы',
+                                     "Уверены? Все незаписанные данные текущей формы будут потеряны", QMessageBox.Yes |
+                                     QMessageBox.No, QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
+
 
 # класс для обработки ошибок, управление потоком
 class MadeToFail(QThread):
     error_ocurred = pyqtSignal(Exception, name="errorOcurred")
 
+    # тест
     def run(self):
         try:
             some_function()

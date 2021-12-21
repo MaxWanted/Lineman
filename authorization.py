@@ -64,7 +64,9 @@ class LoginForm(QWidget):
                 # print('Проверка функции add_operators-', value)
                 break
         if key != 'список операторов':
-            QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')
+            QMessageBox.critical(self, 'Ошибка чтения данных', 'Авторизация невозможна!' + '\n' +
+                                 'Отсутствует файл список операторов.txt"')
+            exit()
 
     def closeEvent(self, event):
         reply = QMessageBox.question(self, 'Сообщение',

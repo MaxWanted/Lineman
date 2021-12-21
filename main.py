@@ -33,13 +33,17 @@ class MainWindow(QWidget):
         self.check_shift()  # определяет текущую смену в зависимости от времени
         self.show_login_form()  # показывает окно авторизации при открытии программы
 
+        # self.setStyleSheet('background-color: #DCDCDC')
+
     # функция описывает интерфейс программы
     def setupUi(self):
+
         qss_file = open('style_file.css').read()
         self.resize(1280, 800)
         self.setFixedSize(1280, 800)
         self.center()
-        self.setWindowTitle('АРМ "Обходчик"')
+        self.setWindowTitle('АРМ "Обходчик - система контроля состояния оборудования"')
+
         # self.setGeometry(200, 200, 1150, 768)
 
         date = datetime.today()
@@ -101,8 +105,15 @@ class MainWindow(QWidget):
         self.cbox_object.setGeometry(QRect(500, 80, 400, 50))
         self.cbox_object.setFont(font_cbox)
 
-        # кнопка загрузки данных из файлов
+        # о программе
+        self.btn_about = QPushButton("?", self)
+        self.btn_about.setGeometry(10, 5, 20, 40)
+        # self.btn_loaddata.setIcon(QIcon('icons/download.png'))
+        # self.btn_about.setIconSize(QSize(25, 25))
+        self.btn_about.clicked.connect(self.about)
+        self.btn_about.setStyleSheet("font: bold")
 
+        # кнопка загрузки данных из файлов
         self.btn_loaddata = QPushButton("  Загрузить данные", self)
         self.btn_loaddata.setGeometry(40, 5, 160, 40)
         self.btn_loaddata.setIcon(QIcon('icons/download.png'))
@@ -173,6 +184,17 @@ class MainWindow(QWidget):
         self.radiobtn_yes.setStyleSheet(qss_file)
         self.radiobtn_no.setStyleSheet(qss_file)
 
+    # кнопка ? о программе
+    def about(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle('О программе')
+        msg.setText('Приложение АРМ "Обходчик" - организация обходов и осмотров состояния оборудования в ЮФ ООО '
+                    '"Газпром энерго". Ведение статистики дефектов и единой базы несоответствий.' + '\n\n' +
+                    'Деркач М.А. - программист 2 кат. отдела ВСЭиР ИУСиС' + '\n' + 'm.a.derkach@gmail.com '
+                    + '\n\n' + 'Текущая версия  - Python, 2021' + '\n' + 'Оригинальная версия - VBA, 2020')
+        msg.exec_()
+
     # функция оперделяет  дневную или ночную смену  от 8 до 20 часов
     def check_shift(self):
         now = datetime.now()
@@ -234,20 +256,11 @@ class MainWindow(QWidget):
                 print('Проверка функции add_params- ' + key, value)
                 self.qlistw_params.addItems(value)
 
-    # функция загурзки выбранного оператора при атворизации
+    # функция загурзки выбранного оператора при автворизации чыерез буферный txt файл
     def add_operators(self):
         with open('temp/buffer_operator.txt', 'r') as file:
             oper = file.readline()
             self.cbox_operator.addItem(oper)
-        # data = read_data_txt()  # функция из модуля database
-        # self.cbox_operator.clear()
-        # for key, value in data.items():
-        # if key == 'список операторов':
-        # self.cbox_operator.addItems(value)
-        # print('Проверка функции add_operators-', value)
-        # break
-        # if key != 'список операторов':
-        # QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список операторов.txt"')
 
     # функция обработки кнопки Загрузить список объектов
     def add_objects(self):
@@ -256,7 +269,10 @@ class MainWindow(QWidget):
         for key, value in data.items():
             if key == 'список объектов':
                 self.cbox_object.addItems(value)
-                print('Проверка функции add_objects-', value)
+                # print('Проверка функции add_objects-', value)
+                self.btn_loaddata.setEnabled(False)
+                msg = '---\t' + '\n---\t'.join(value)
+                QMessageBox.information(self, "Объекты загружены", msg, QMessageBox.Ok)
                 break
         if key != 'список объектов':
             QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список объектов.txt"')
@@ -264,14 +280,12 @@ class MainWindow(QWidget):
     def click_add_data(self):  # кнопка "Загрузить данные"
         date = datetime.today()
         current_date = str((date.strftime('%d.%m.%Y %H:%M')))
-
+        db_connect()  # функция соаздния БД из модуля database.py
         self.add_objects()
-        self.add_operators()
         if self.cbox_object.currentText() and self.cbox_operator.currentText() is not None:
             self.lbl_info.setText('Операторы и объекты успешно загружены')
-
-        self.btn_loaddata.setEnabled(False)
-        self.btn_confirm.setEnabled(True)
+            self.add_operators()
+            self.btn_confirm.setEnabled(True)
 
     # запись выделенного параметра в базу данных и окрагиванием цвета в лист боксе
     def click_save_results(self):
@@ -284,7 +298,7 @@ class MainWindow(QWidget):
         # if param is not None:
         if self.qlistw_params.selectedItems():  # если  выбран парметр проверки к листбоксе
             # db_delete()  # функция из database.py
-            db_connect()  # функция из database.py
+            # db_connect()  # функция из database.py
 
             if self.radiobtn_yes.isChecked():  # если выбрано ДА
                 db_insert(param.text(), cbox_object, cbox_operator, shift, checkout='Да')  # функция из database.py
@@ -296,6 +310,8 @@ class MainWindow(QWidget):
             if self.radiobtn_no.isChecked():  # если выбрано НЕТ
                 param.setBackground(QColor("IndianRed"))
                 param.setFlags(Qt.NoItemFlags)  # блокируем записанный элемент
+                #  добавляем в БД запись, но уже с проверкой "НЕТ" и далее работаем с окном несоотвествий
+                db_insert(param.text(), cbox_object, cbox_operator, shift, checkout='Нет')
                 self.show_second_window()  # функция в этом классе
                 self.lbl_info.setText('Данные несоответствий записаны')
         else:
@@ -323,7 +339,7 @@ class SecondWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        # небольшой блок проверки, о том что каждый раз окно создается новоее.
+        # небольшой блок проверки, который доказывает что каждый раз окно создается новое.
         # layout = QVBoxLayout()
         # self.label = QLabel("Another Window % d" % randint(0, 100))
         # layout.addWidget(self.label)
@@ -528,7 +544,7 @@ class SecondWindow(QWidget):
                 self.qlistw_defects.addItems(values)
                 break
         if keys != 'список несоответствий':
-            QMessageBox.critical(self, 'Ошибка чтения данных', 'Отсутствует файл "список несоответствий.txt"')
+            QMessageBox.critical(self, 'Данные не загружены!', 'Отсутствует файл "список несоответствий.txt"')
 
     def click_save_results(self):
         defect = self.qlistw_defects.currentItem()  # несоответсвие
@@ -543,9 +559,10 @@ class SecondWindow(QWidget):
 
         if defect and detection_type is not None:
             # db_delete()  # функция из database.py
-            db_connect()  # функция из database.py
+            # db_connect()  # функция из database.py
+            # добавляем данные в БД из таблицы несоотвествий в последнюю запись в БД.
             db_insert_defects(defect.text(), defect_grade, cons_grade, detection_type,
-                              importance_lvl, comment, solve_date, checkout='Нет')  # функция из database.py
+                              importance_lvl, comment, solve_date)  # функция из database.py
             table_results = db_select()  # функция из database.py для для проверки
             self.hide_second_window()  # функция в этом классе
 
@@ -578,14 +595,15 @@ class SecondWindow(QWidget):
             if c == 2:
                 return 'Высокий'
 
-    def closeEvent(self, event):
-        reply = QMessageBox.question(self, 'Закрытие формы',
-                                     "Уверены? Все незаписанные данные текущей формы будут потеряны", QMessageBox.Yes |
-                                     QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            event.accept()
-        else:
-            event.ignore()
+
+# def closeEvent(self, event):
+# reply = QMessageBox.question(self, 'Закрытие формы',
+#          "Уверены? Все незаписанные данные текущей формы будут потеряны", QMessageBox.Yes |
+#   QMessageBox.No, QMessageBox.No)
+# if reply == QMessageBox.Yes:
+#  event.accept()
+#  else:
+# event.ignore()
 
 
 # класс для обработки ошибок, управление потоком

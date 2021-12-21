@@ -15,7 +15,7 @@ def db_connect():
         connection = sqlite3.connect('db_results.db')
         cursor = connection.cursor()
 
-        #log_db("база данных создана и успешно подключена к SQLite")  # фукнция заиси логов
+        # log_db("база данных создана и успешно подключена к SQLite")  # фукнция заиси логов
 
         cursor.execute("""CREATE TABLE  IF NOT EXISTS results (
                     id INTEGER PRIMARY KEY,
@@ -38,7 +38,7 @@ def db_connect():
                 )""")
 
         connection.commit()
-        #log_db('таблица БД успешно создана')
+        # log_db('таблица БД успешно создана')
         connection.close()
 
     except sqlite3.Error as error:
@@ -76,10 +76,11 @@ def db_insert(item, obj, oper, shift, checkout):
                         defect_grade,
                         who_knows
                         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                       (current_date, current_time, shift, oper, obj, item, checkout, '', '', '', '', '', '', '', '', ''))
+                       (current_date, current_time, shift, oper, obj, item, checkout, '', '', '', '', '', '', '', '',
+                        ''))
 
         connection.commit()
-        #log_db('данные положительной проверки успешно записаны в базу данных ')
+        # log_db('данные положительной проверки успешно записаны в базу данных ')
         connection.close()
 
     except sqlite3.Error as error:
@@ -88,7 +89,7 @@ def db_insert(item, obj, oper, shift, checkout):
 
 
 # вставка(обновление) данных из второй формы в таблицу
-def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment, solve_date, checkout):
+def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl, comment, solve_date):
     # все статичные данные для таблицы
     date = datetime.today()
     current_date = str(date.strftime('%d.%m.%Y'))  # форматируем дату в российский формат
@@ -97,19 +98,20 @@ def db_insert_defects(defect, grade, cons_grade, detection_type, importance_lvl,
         connection = sqlite3.connect('db_results.db')
         cursor = connection.cursor()
 
-        cursor.execute("UPDATE results SET checkout=?, defect=?, importance_lvl=?, detection_type=?, grade=?, "
+        cursor.execute("UPDATE results SET defect=?, importance_lvl=?, detection_type=?, grade=?, "
                        "defect_grade=?, detection_date=?, solve_date=?, comment=? "
                        "WHERE ID = (SELECT MAX(ID) from results)",
-                       (checkout, defect, importance_lvl, detection_type, cons_grade, grade, current_date, solve_date,
+                       (defect, importance_lvl, detection_type, cons_grade, grade, current_date, solve_date,
                         comment))
 
         connection.commit()
-        #log_db('данные проверки несоответствий успешно записаны в базу данных ')
+        # log_db('данные проверки несоответствий успешно записаны в базу данных ')
         connection.close()
 
     except sqlite3.Error as error:
         print("Ошибка при подключении к sqlite", error)
         log_db(error)
+
 
 # выборка из БД для проверки
 def db_select():

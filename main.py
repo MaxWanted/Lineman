@@ -2,6 +2,7 @@
 
 import sys, os, os.path, sqlite3
 from datetime import time
+from idlelib import window
 
 from PyQt5.QtCore import *
 from PyQt5.QtGui import QFont, QColor, QIcon
@@ -20,7 +21,13 @@ def some_function():
     raise RuntimeError("broken")
 
 
-"""|||||||||||||||||||||||||||||||||Класс описывает основное рабочее окно||||||||||||||||||||||||||||||||||"""
+"""|||||||||||||||||||||||||||||||||Класс описывает основное рабочее окно||||||||||||||||||||||||||||||||||
+param - параметр проверки 
+cbox_object - объект проверки
+cbox_operator  - оператор
+shift - текущая смена
+checkout -  состояние проверки ДА или НЕТ
+"""
 
 
 class MainWindow(QWidget):
@@ -71,21 +78,21 @@ class MainWindow(QWidget):
         # надпись дата
         self.lbl_date = QLabel("Дата", self)
         self.lbl_date.setText(current_date)
-        self.lbl_date.setGeometry(250, 5, 100, 30)
+        self.lbl_date.setGeometry(150, 5, 100, 30)
         self.lbl_date.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_date.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
         self.lbl_date.setFont(font_lbl)
 
         # надпись смена
         self.lbl_shift = QLabel("Дневная смена", self)
-        self.lbl_shift.setGeometry(400, 5, 150, 30)
+        self.lbl_shift.setGeometry(290, 5, 150, 30)
         self.lbl_shift.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_shift.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
         self.lbl_shift.setFont(font_lbl)
 
         # надпись информация
-        self.lbl_info = QLabel('Нажмите кнопку "Загрузить данные" слева', self)
-        self.lbl_info.setGeometry(650, 5, 590, 30)
+        self.lbl_info = QLabel('Нажмите "Загрузить данные" ', self)
+        self.lbl_info.setGeometry(500, 5, 400, 30)
         self.lbl_info.setWordWrap(True)
         self.lbl_info.setStyleSheet('border: 1px solid rgb(220, 220, 220); border-radius: 2px;')
         self.lbl_info.setAlignment((Qt.AlignHCenter | Qt.AlignTop))
@@ -107,15 +114,24 @@ class MainWindow(QWidget):
 
         # о программе
         self.btn_about = QPushButton("?", self)
-        self.btn_about.setGeometry(10, 5, 20, 40)
-        # self.btn_loaddata.setIcon(QIcon('icons/download.png'))
-        # self.btn_about.setIconSize(QSize(25, 25))
+        self.btn_about.setGeometry(10, 5, 20, 30)
+        #self.btn_about.setIcon(QIcon('icons/download.png'))
+        #self.btn_about.setIconSize(QSize(25, 25))
         self.btn_about.clicked.connect(self.about)
         self.btn_about.setStyleSheet("font: bold")
 
+        # помощь
+        self.btn_help = QPushButton("Помощь", self)
+        self.btn_help.setGeometry(40, 5, 75, 30)
+        # self.btn_about.setIcon(QIcon('icons/download.png'))
+        # self.btn_about.setIconSize(QSize(25, 25))
+        self.btn_help.clicked.connect(self.help)
+        self.btn_help.setStyleSheet("font: bold")
+
+
         # кнопка загрузки данных из файлов
         self.btn_loaddata = QPushButton("  Загрузить данные", self)
-        self.btn_loaddata.setGeometry(40, 5, 160, 40)
+        self.btn_loaddata.setGeometry(1020, 5, 220, 40)
         self.btn_loaddata.setIcon(QIcon('icons/download.png'))
         self.btn_loaddata.setIconSize(QSize(25, 25))
         self.btn_loaddata.clicked.connect(self.click_add_data)
@@ -160,11 +176,6 @@ class MainWindow(QWidget):
 
         self.radiobtn_yes = QRadioButton('ДА', self)
         self.radiobtn_yes.setGeometry(400, 700, 200, 65)
-        self.radiobtn_yes.setStyleSheet(("QRadioButton"
-                                         "{"
-                                         "background-color : LightGreen"
-                                         "} QRadioButton{font: 26pt Helvetica MS;}"
-                                         "QRadioButton::indicator { width: 30px; height: 30px;}"))
 
         self.lblyes = QLabel(self)
         self.lblyes.setStyleSheet("background-color : LightGreen")
@@ -184,15 +195,30 @@ class MainWindow(QWidget):
         self.radiobtn_yes.setStyleSheet(qss_file)
         self.radiobtn_no.setStyleSheet(qss_file)
 
+
     # кнопка ? о программе
     def about(self):
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
         msg.setWindowTitle('О программе')
         msg.setText('Приложение АРМ "Обходчик" - организация обходов и осмотров состояния оборудования в ЮФ ООО '
-                    '"Газпром энерго". Ведение статистики дефектов и единой базы несоответствий.' + '\n\n' +
-                    'Деркач М.А. - программист 2 кат. отдела ВСЭиР ИУСиС' + '\n' + 'm.a.derkach@gmail.com '
-                    + '\n\n' + 'Текущая версия  - Python, 2021' + '\n' + 'Оригинальная версия - VBA, 2020')
+                    '"Газпром энерго". Ведение статистики дефектов и единой базы несоответствий.\n\n' 
+                    'Деркач М.А. - программист 2 кат. отдела ВСЭиР ИУСиС\nm.a.derkach@gmail.com'
+                    '\n\nТекущая версия  - Python, 2021\nОригинальная версия - VBA, 2020')
+        msg.exec_()
+
+    def help(self):
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setWindowTitle('Справка')
+        msg.setText('Нажмите кнопку "Загрузить данные", чтобы программа прочитала файлы несоответсвий, объектов и '
+                    'операторов.\nДалее нажмите кнопку "Подтвердить выбор", для загрузки этих данных в программу.\n'
+                    'Нажимайте на строки с параметрами проверки в главном окне, выбирайте переключатель проверки "ДА"'
+                    'или "НЕТ" и нажимайте кнопку "Записать".\n\nЕсли будет выбран переключатель "НЕТ", то откроется'
+                    'другое окно с выбором несоответствий и сопутствующих параметров. После выбора несоответствий в '
+                    'новом окне, нажмите кнопку "Записать", окно закроется и вы снова сможете продолжить работу с '
+                    'первой формой.\n\nДля корректного завершения работы программыи сохранения всех записанных данных'
+                    'нажимайте кнопку "Выход" из главной формы')
         msg.exec_()
 
     # функция оперделяет  дневную или ночную смену  от 8 до 20 часов
@@ -307,7 +333,7 @@ class MainWindow(QWidget):
                 # table_results = db_select()  # функция из database.py для для проверки
                 self.lbl_info.setText('Данные записаны')
 
-            if self.radiobtn_no.isChecked():  # если выбрано НЕТ
+            if self.radiobtn_no.isChecked():  # если параметр проверки выбран НЕТ
                 param.setBackground(QColor("IndianRed"))
                 param.setFlags(Qt.NoItemFlags)  # блокируем записанный элемент
                 #  добавляем в БД запись, но уже с проверкой "НЕТ" и далее работаем с окном несоотвествий
@@ -317,6 +343,7 @@ class MainWindow(QWidget):
         else:
             QMessageBox.critical(self, 'Ошибка', 'Не выбран параметр проверки!')
 
+        # чисто печать БД в консоль во время отладки
         table_results = db_select()
         for row in table_results:
             print('\nНаша таблица results БД db_results.db\n', row)
@@ -331,7 +358,16 @@ class MainWindow(QWidget):
         print(exception)
 
 
-"""||||||||||||||||||Класс описывает второе окно несоответсвий||||||||||||||||||||||||||"""
+"""||||||||||||||||||Класс описывает второе окно несоответсвий||||||||||||||||||||||||||
+
+defect - дефект во втором окне несоответствий
+defect_grade -  бальная оценка несоответсвий
+cons_grade - бальная оценка последствий
+detection_type - дата обнаружения
+importance_lvl - уровень важности
+comment - комментарий на второй форме
+solve_date  - дата устранения 
+"""
 
 
 class SecondWindow(QWidget):
